@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "f8406e8aa7d51259",
+        "id": "55dfe3b228c0e03c",
         "type": "tabs",
         "children": [
           {
-            "id": "e5e3b67d8d6bc98c",
+            "id": "79a2e3d2a88f352e",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -137,13 +137,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "ai.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "ai 的大纲"
+              "title": "大纲"
             }
           },
           {
@@ -175,7 +174,7 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "e5e3b67d8d6bc98c",
+  "active": "79a2e3d2a88f352e",
   "lastOpenFiles": [
     "ai.md",
     "claude code.md"

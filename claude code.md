@@ -1,5 +1,7 @@
 Agent
 
+代理是专门的人工智能助手，能够理解特定领域并提供专家级指导。每个代理都经过其专业领域最佳实践的培训
+
 你可以把普通的 Claude 聊天模型理解为一个**通才（general AI）**，  
 而 Agent 是在它的基础上，**赋予角色、任务、记忆和工具访问能力**的“专用人格”。
 
@@ -45,6 +47,8 @@ Agent 是核心大脑，Skills 是大脑学过的专业技能，Tools 是执行�
 - 版本管理 &维护：Skill 一旦用在组织中，可能随着流程演化需要更新。团队需有机制去管理 Skill 包
 
 ## Command
+
+用于自动化常见的开发任务
 
 - 它让开发者 **快速执行预定义流程**，而不是每次都手动输入详细指令。
 - 它提升了工作流自动化能力 — 你只需输入一个命令，就可以调用 Claude 阅读代码、修改文件、运行 shell 命令等。 [Claude 文档+1](https://docs.anthropic.com/en/docs/claude-code/overview?utm_source=chatgpt.com)
@@ -104,9 +108,15 @@ https://rube.app/
 
 ## Hooks
 
+钩子是自动化脚本，在开发工作流程中特定事件发生时触发操作。它们会在后台自动运行。
+
 用户定义的 shell 命令，在 Claude Code 生命周期的各个点执行。Hooks 提供对 Claude Code 行为的确定性控制，确保某些操作总是发生，而不是依赖 LLM 选择运行它们
 
 >在每次文件编辑后对 .ts 文件运行 `prettier`
+
+## Setting
+
+设置项用于调整 Claude Code 在项目中的行为方式，可控制性能、安全性、界面及工作流程偏好
 
 ## MCP
 
