@@ -126,3 +126,11 @@ https://rube.app/
 |                                                                              |     |
 
 https://metaso.cn/
+
+https://github.com/anthropics/skills
+
+https://github.com/github/spec-kit
+
+https://github.com/UfoMiao/zcf
+
+https://github.com/yusufkaraaslan/Skill_Seekers
