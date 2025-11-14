@@ -134,3 +134,7 @@ https://github.com/github/spec-kit
 https://github.com/UfoMiao/zcf
 
 https://github.com/yusufkaraaslan/Skill_Seekers
+
+https://github.com/hesreallyhim/awesome-claude-code
+
+https://github.com/OneRedOak/claude-code-workflows
