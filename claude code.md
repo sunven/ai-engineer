@@ -1,211 +1,236 @@
-Agent
+# Claude Code 核心概念指南
 
-代理是专门的人工智能助手，能够理解特定领域并提供专家级指导。每个代理都经过其专业领域最佳实践的培训
+## 概念层级关系
 
-你可以把普通的 Claude 聊天模型理解为一个**通才（general AI）**，  
-而 Agent 是在它的基础上，**赋予角色、任务、记忆和工具访问能力**的“专用人格”。
+```
+Plugin (插件包)
+├── Agent (代理 - 决策者)
+├── Skill (技能 - 执行单元)
+├── Command (命令 - 快捷操作)
+├── Hook (钩子 - 自动化触发)
+└── MCP Server (外部工具集成)
+```
 
-以用户说：
+## 1. Agent (代理)
 
-> “请每周帮我生成一份销售报告并发给我邮箱。”
+### 定义
 
-Claude Agent 会：
+专门的 AI 助手，具有特定领域的专业能力。可以理解为在通用 Claude 基础上赋予**角色、任务、记忆和工具访问能力**的"专用人格"。
 
-1. **理解意图**：知道你要每周自动报告
-2. **规划任务**：决定需要做哪些步骤
+### 核心特征
+
+- **决策者角色**：处理开放式、多步骤的复杂目标
+- **独立上下文**：拥有独立的对话历史，避免与主对话干扰
+- **高能动性**：可以自主思考和调整策略
+- **工具使用者**：可以调用多个 Skills 和 Tools
+
+### 工作流程示例
+
+当用户说："请每周帮我生成一份销售报告并发给我邮箱"
+
+1. **理解意图**：识别需要周期性自动报告
+2. **规划任务**：拆解为数据提取、分析、格式化、发送等步骤
 3. **调用 Skill**：使用 `data_analysis.skill`、`report_format.skill`
 4. **调用 Tool**：从数据库提取数据 → 调用邮件 API 发送
 5. **记忆更新**：保存报告历史、发送状态
-6. **执行完成**：返回你结果，并等待下次调度
+6. **执行完成**：返回结果并等待下次调度
 
-## Skills
+### 适用场景
 
-Claude 自动发现的能力,适合需要多个文件或验证步骤的复杂工作流程
+- 需要定期进行安全审计（扫描 → 分析 → 修复 → 验证）
+- 复杂的代码重构任务
+- 需要多轮推理和判断的工作流
 
-人掌握的技能
+## 2. Skill (技能)
 
-Agent 决定“做什么”，Skill 决定“怎么做”。  
-多个 Skills 可以被同一个 Agent 调用，构成一个完整的工作流
+### 定义
 
-**Agent** 负责“想”；**Skill** 负责“怎么做”；**Tool** 负责“去做”。
-Agent 是核心大脑，Skills 是大脑学过的专业技能，Tools 是执行这些技能的工具。
+指令、脚本和资源的文件夹集合，Claude 通过动态加载来提升特定任务的执行能力。是**标准化、可重复的工作能力包**。
 
-技能是指令、脚本和资源的文件夹，克劳德通过动态加载这些内容来提升特定任务的执行能力。技能教会克劳德如何以可重复的方式完成具体任务，无论是按照公司品牌规范创建文档、运用组织特定工作流程分析数据，还是自动化个人事务
+### 核心特征
 
-专业化、可重复的工作能力，使其在特定任务上表现得更像领域专家，而不是仅靠一次性提示完成所有工作
+- **执行单元角色**：处理确定性、原子级的任务
+- **共享上下文**：嵌入到当前对话流中执行
+- **低能动性**：按照预定步骤执行，完成后返回结果
+- **被调用对象**：可被任何 Agent 或主 Claude 使用
 
-**门任务能力包**（模块化工作流程插件/扩展）
+### 三层关系
 
-- 在组织/团队内部，设置标准化流程：比如“根据公司的品牌指南生成 PPT”“处理 Excel 报表并加入公式”“生成填充 PDF 文档”。 [anthropic.com+1](https://www.anthropic.com/news/skills?utm_source=chatgpt.com)
-- 减少每次都需要写大量 Prompt 的重复劳动：当 Skill 被触发，Claude 会自动识别并加载相应资源。 [Tom's Guide+1](https://www.tomsguide.com/ai/claude-skills-are-here-and-they-might-be-the-smartest-ai-feature-youre-not-using-yet?utm_source=chatgpt.com)
-- 提升工作效率 & 精准度：因为 Skill 内含“脚本＋模板＋规则”，Claude 在执行时更加贴合预期
+- **Agent** 负责"想"（决策）
+- **Skill** 负责"怎么做"（方法）
+- **Tool** 负责"去做"（执行）
 
-## 使用注意事项
+### 核心价值
 
-- 安全性：因为 Skills 可以包含脚本代码、外部调用、资源依赖，若来源不可信可能引入风险。 [anthropic.com](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills?utm_source=chatgpt.com)
-- 触发机制：要让 Claude “知道”何时使用某个 Skill，Skill 的说明／元数据写得好很关键，否则 Claude 可能不会自动调用或调用不准确。
-- 版本管理 &维护：Skill 一旦用在组织中，可能随着流程演化需要更新。团队需有机制去管理 Skill 包
+- 设置标准化流程（如按公司品牌指南生成 PPT）
+- 减少重复编写 Prompt 的工作量
+- 提升执行效率和精准度（脚本 + 模板 + 规则）
 
-## Command
+### 适用场景
 
-用于自动化常见的开发任务
+- 公司内部代码提交规范（Git Commit Message）
+- 查询生产环境日志
+- 数据库查询操作
+- 文档格式化处理
 
-- 它让开发者 **快速执行预定义流程**，而不是每次都手动输入详细指令。
-- 它提升了工作流自动化能力 — 你只需输入一个命令，就可以调用 Claude 阅读代码、修改文件、运行 shell 命令等。 [Claude 文档+1](https://docs.anthropic.com/en/docs/claude-code/overview?utm_source=chatgpt.com)
-- Slash commands 还方便团队共享“任务模板”或“流程脚本”，保证一致性
+### 注意事项
 
-## Plugin
+- **安全性**：可能包含脚本代码和外部调用，需验证来源
+- **触发机制**：需要清晰的说明和元数据，确保 Claude 正确调用
+- **版本管理**：需要建立更新和维护机制
 
-明确调用的提示,适合重复使用的简单提示
+## 3. Agent vs Skill 对比
 
-## Plugin 的组成部分
+| 维度 | Agent (代理) | Skill (技能) |
+|------|-------------|-------------|
+| **本质** | 决策者 (Decision Maker) | 执行单元 (Capability) |
+| **隐喻** | 专职工人（有人格、记忆） | 操作手册 / 工具 |
+| **复杂性** | 开放式、多步骤目标<br>*例：Python 项目重构为 Go* | 确定性、原子级任务<br>*例：查询数据库用户表* |
+| **上下文** | 独立的上下文窗口 | 共享当前上下文 |
+| **能动性** | 高（可自主调整策略） | 低（按步骤执行） |
+| **关系** | 包含/使用 Skill | 被 Agent 调用 |
 
-Plugin 可以包含以下组件[2](https://docs.claude.com/en/api/agent-sdk/plugins):
+### 选择原则
 
-- **Commands**(命令):自定义斜杠命令
-- **Agents**(代理):用于特定任务的专门子代理
-- **Skills**(技能):Claude 自主使用的模型调用能力
-- **Hooks**(钩子):响应工具使用和其他事件的事件处理器
-- **MCP servers**(MCP 服务器):通过模型上下文协议的外部工具集成
+- **用 Skill**：扩展 Claude 的"知识库"或"工具箱"（教它*怎么做*）
+- **用 Agent**：扩展 Claude 的"团队"（找个帮手*负责*某领域）
 
-## Plugin 的作用
+### 协作示例
 
-他们通过让团队标准化其智能体开发设置，解决了“如何为我的配置建立相同的智能体工作流”的问题。
+```
+用户："提升测试覆盖率到 90%"
+  ↓
+Claude 主程序：委派给 QA-Agent
+  ↓
+QA-Agent：分析代码，决定运行测试
+  ↓
+QA-Agent：调用 Run-Test-Script (Skill)
+  ↓
+Skill：执行 Shell 命令，返回覆盖率数据
+  ↓
+QA-Agent：根据数据编写新测试用例，循环直到达标
+```
 
-工程负责人可以创建标准化的设置供所有人使用。每个人都能获得相同的工具、相同的配置、相同的快捷方式，无需额外设置。
+### 场景决策指南
 
-Plugin 让您可以[1](https://docs.claude.com/en/docs/claude-code/plugins#develop-more-complex-plugins):
+#### 场景 A：代码提交规范
 
-- **安装预构建的扩展**:从市场安装插件以添加预构建的命令、代理、钩子、技能和 MCP 服务器
-- **创建自定义功能**:创建自己的插件来自动化工作流程
-- **跨项目共享**:在不同项目间重用功能
-- **团队协作**:与团队成员共享标准化工具
+- **选择**：Skill
+- **原因**：标准化知识，不需要专门的"提交人员"
+- **做法**：创建 `Commit-Style` Skill，定义提交信息格式规则
 
-## Plugin 的结构
+#### 场景 B：安全审计
+
+- **选择**：Agent
+- **原因**：复杂任务流，需要推理和判断
+- **做法**：创建 `Security-Auditor` Agent，配备扫描工具
+
+#### 场景 C：查询日志
+
+- **选择**：Skill
+- **原因**：工具行为，是动作而非角色
+- **做法**：创建 `Fetch-Logs` Skill，封装查询命令
+
+## 4. Command (命令)
+
+### 定义
+
+用于自动化常见开发任务的快捷操作，通过斜杠命令快速执行预定义流程。
+
+### 核心价值
+
+- 快速执行预定义流程，无需手动输入详细指令
+- 提升工作流自动化能力
+- 方便团队共享"任务模板"或"流程脚本"
+
+## 5. Plugin (插件)
+
+### 定义
+
+标准化的扩展包，用于团队共享和复用工作流配置。
+
+### 组成部分
+
+- **Commands**：自定义斜杠命令
+- **Agents**：特定任务的专门子代理
+- **Skills**：Claude 自主使用的能力
+- **Hooks**：事件响应处理器
+- **MCP Servers**：外部工具集成
+
+### 核心价值
+
+- 标准化团队的智能体开发设置
+- 所有人获得相同的工具、配置、快捷方式
+- 跨项目共享和重用功能
+
+### 目录结构
 
 ```
 my-first-plugin/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin metadata
-├── commands/                 # Custom slash commands (optional)
+│   └── plugin.json          # 插件元数据
+├── commands/                 # 自定义斜杠命令（可选）
 │   └── hello.md
-├── agents/                   # Custom agents (optional)
+├── agents/                   # 自定义代理（可选）
 │   └── helper.md
-├── skills/                   # Agent Skills (optional)
+├── skills/                   # Agent Skills（可选）
 │   └── my-skill/
 │       └── SKILL.md
-└── hooks/                    # Event handlers (optional)
+└── hooks/                    # 事件处理器（可选）
     └── hooks.json
 ```
 
-https://github.com/anthropics/claude-code/tree/main/plugins
+## 6. Hook (钩子)
 
-https://claudemarketplaces.com/
+### 定义
 
-https://claudex.directory/
+在开发工作流程中特定事件发生时自动触发的脚本，提供对 Claude Code 行为的确定性控制。
 
-https://rube.app/
+### 特点
 
-## Hooks
+- 在后台自动运行
+- 确保某些操作总是发生（不依赖 LLM 选择）
 
-钩子是自动化脚本，在开发工作流程中特定事件发生时触发操作。它们会在后台自动运行。
+### 示例
 
-用户定义的 shell 命令，在 Claude Code 生命周期的各个点执行。Hooks 提供对 Claude Code 行为的确定性控制，确保某些操作总是发生，而不是依赖 LLM 选择运行它们
+- 每次文件编辑后对 `.ts` 文件运行 `prettier`
+- 代码提交前自动运行 lint 检查
 
->在每次文件编辑后对 .ts 文件运行 `prettier`
+## 7. Setting (设置)
 
-## Setting
+### 定义
 
-设置项用于调整 Claude Code 在项目中的行为方式，可控制性能、安全性、界面及工作流程偏好
+用于调整 Claude Code 在项目中的行为方式，可控制性能、安全性、界面及工作流程偏好。
 
-## MCP
+## 8. MCP (Model Context Protocol)
 
-|                                                                              |     |
-| ---------------------------------------------------------------------------- | --- |
-| [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) |     |
-|                                                                              |     |
+### 定义
 
-https://metaso.cn/
+通过模型上下文协议集成外部工具的机制。
 
-https://github.com/anthropics/skills
+### 示例
 
-https://github.com/github/spec-kit
+- [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp)
 
-https://github.com/UfoMiao/zcf
+## 参考资源
 
-https://github.com/yusufkaraaslan/Skill_Seekers
+### 官方资源
 
-https://github.com/hesreallyhim/awesome-claude-code
+- [Claude Skills 官方博客](https://claude.com/blog/skills-explained)
+- [Anthropic Skills 仓库](https://github.com/anthropics/skills)
+- [Claude Code 插件仓库](https://github.com/anthropics/claude-code/tree/main/plugins)
 
-https://github.com/OneRedOak/claude-code-workflows
+### 社区资源
 
-这是一个非常好的问题。乍一看，**Agent (代理)** 和 **Skill (技能)** 确实很容易混淆，因为它们都是用来“教”Claude 做它原本不会做的事情。
+- [Claude Marketplaces](https://claudemarketplaces.com/)
+- [Claudex Directory](https://claudex.directory/)
+- [Rube App](https://rube.app/)
+- [Awesome Claude Code](https://github.com/hesreallyhim/awesome-claude-code)
+- [Claude Code Workflows](https://github.com/OneRedOak/claude-code-workflows)
 
-**直接回答你的问题：**
-**它们不重复。** 它们处于解决问题的不同层级。
+### 其他工具
 
-简单的一句话区别：**Agent 是“谁”（Who），而 Skill 是“怎么做”（How）。**
-
-我们可以通过以下几个维度来深度拆解它们的区别：
-
-### 1. 核心隐喻：工人 vs. 工具书
-
-*   **Agent (代理) = 专职工人**
-    *   想象你雇佣了一个 **“专业的前端测试员”**。
-    *   他有**独立的人格**（系统提示词），比如“你是一个严格的测试员，只关注 Bug”。
-    *   他有**独立的记忆**（上下文），专门处理测试任务，不会被之前聊的午饭话题干扰。
-    *   他**可以使用**各种工具（包括 Skills）。
-*   **Skill (技能) = 操作手册 / 工具**
-    *   想象一本 **《公司内部 API 调用手册》** 或者一个 **“自动生成日报的脚本”**。
-    *   它是一段**死的知识**或**固定的流程**。
-    *   无论是“测试员 Agent”还是“项目经理 Agent”，甚至是主 Claude，**谁都可以拿来用**。
-
-### 2. 详细对比表
-
-| 维度 | Agent (代理) | Skill (技能) |
-| :--- | :--- | :--- |
-| **本质** | **决策者 (Decision Maker)** | **执行单元 (Capability)** |
-| **复杂性** | 处理**开放式、多步骤**的目标。 <br> *(例：“帮我把这个 Python 项目重构为 Go”)* | 处理**确定性、原子级**的任务。 <br> *(例：“查询数据库中的用户表”)* |
-| **上下文** | 拥有**独立的上下文窗口**。 <br> 它的对话历史与主对话隔离，避免干扰。 | **共享当前上下文**。 <br> 它是被嵌入到当前的对话流中执行的。 |
-| **能动性** | **高**。Agent 可以自己思考：“第一步失败了，我该试第二步还是报错？” | **低**。Skill 通常是：“照着这几步做，做完告诉我结果。” |
-| **关系** | Agent **包含/使用** Skill。 <br> 一个 Agent 可以装备多个 Skills。 | Skill 是被调用的对象。 |
-
-### 3. 场景举例：如何决定用哪个？
-
-为了更直观地理解，我们来看几个具体的开发场景：
-
-#### 场景 A：公司内部有一套复杂的代码提交规范（Git Commit Message）
-
-*   **你应该用 Skill。**
-*   **为什么？** 因为这是一个**标准化的知识**。你不需要一个专门的“提交人员”，你需要的是让现在的 Claude 在写提交信息时，参考这份规范。
-*   **做法：** 创建一个 `Commit-Style` Skill，里面写上：“提交信息必须包含 Ticket ID，必须是动宾结构...”。
-
-#### 场景 B：你需要定期对项目进行安全审计
-
-*   **你应该用 Agent。**
-*   **为什么？** 因为这是一个**复杂的任务流**。它涉及：扫描代码 -> 分析报告 -> 排除误报 -> 尝试修复 -> 验证修复。这中间需要大量的推理和判断。
-*   **做法：** 创建一个 `Security-Auditor` Agent。给它配备扫描工具（Skill），并设定 Persona：“你是一个安全专家，对漏洞零容忍”。
-
-#### 场景 C：查询生产环境的日志
-
-*   **你应该用 Skill。**
-*   **为什么？** 这是一个**工具行为**。这是一个动作，而不是一个角色。
-*   **做法：** 创建一个 `Fetch-Logs` Skill，封装 SSH 命令或 API 调用。
-
-### 4. 进阶理解：它们的协作关系
-
-在 Claude Code 的高级用法中，它们通常是配合使用的：
-
-1.  **用户指令**：“Claude，帮我把这个模块的测试覆盖率提升到 90%。”
-2.  **Claude (主程序)**：分析任务，发现比较复杂，决定委派给 **QA-Agent**（因为这个 Agent 擅长写测试）。
-3.  **QA-Agent (代理)**：接管任务。它分析代码，发现需要运行测试。
-4.  **QA-Agent**：决定调用 **Run-Test-Script (Skill)** 来查看当前覆盖率。
-5.  **Skill**：执行具体的 Shell 命令，返回覆盖率数据。
-6.  **QA-Agent**：根据 Skill 返回的数据，编写新的测试用例，再次循环，直到达成目标。
-
-### 总结
-
-*   如果你想扩展 Claude 的 **“知识库”** 或 **“工具箱”**（让它学会*怎么做*某件具体的事），请使用 **Skill**。
-*   如果你想扩展 Claude 的 **“团队”**（给它找个帮手去*负责*某一类复杂的领域），请使用 **Agent**。
-
-https://claude.com/blog/skills-explained
+- [Metaso](https://metaso.cn/)
+- [GitHub Spec Kit](https://github.com/github/spec-kit)
+- [ZCF](https://github.com/UfoMiao/zcf)
+- [Skill Seekers](https://github.com/yusufkaraaslan/Skill_Seekers)
